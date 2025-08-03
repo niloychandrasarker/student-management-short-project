@@ -1,80 +1,56 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Plus, GraduationCap } from 'lucide-react';
-import { studentService } from './services/studentService';
+import { 
+  fetchStudents, 
+  addStudent, 
+  updateStudent, 
+  deleteStudent,
+  setShowForm,
+  setEditingStudent,
+  clearError,
+  cancelForm
+} from './store/slices/studentSlice';
 import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 
 function App() {
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingStudent, setEditingStudent] = useState(null);
+  const dispatch = useDispatch();
+  const { students, loading, error, showForm, editingStudent } = useSelector(state => state.students);
 
   // Load students on component mount
   useEffect(() => {
-    loadStudents();
+    dispatch(fetchStudents());
   }, []);
 
-  const loadStudents = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await studentService.getAllStudents();
-      setStudents(data);
-    } catch (err) {
-      setError('Failed to load students. Please make sure your backend server is running.');
-    } finally {
-      setLoading(false);
-    }
+  const handleRetry = () => {
+    dispatch(clearError());
+    dispatch(fetchStudents());
   };
 
   const handleAddStudent = async (studentData) => {
-    try {
-      const newStudent = await studentService.addStudent(studentData);
-      setStudents(prev => [...prev, newStudent]);
-      setShowForm(false);
-    } catch (err) {
-      setError('Failed to add student. Please try again.');
-    }
+    dispatch(addStudent(studentData));
   };
 
   const handleUpdateStudent = async (studentData) => {
-    try {
-      const updatedStudent = await studentService.updateStudent(editingStudent.id, studentData);
-      setStudents(prev => 
-        prev.map(student => 
-          student.id === editingStudent.id ? updatedStudent : student
-        )
-      );
-      setEditingStudent(null);
-      setShowForm(false);
-    } catch (err) {
-      setError('Failed to update student. Please try again.');
-    }
+    dispatch(updateStudent({ id: editingStudent.id, studentData }));
   };
 
   const handleDeleteStudent = async (id) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
-      try {
-        await studentService.deleteStudent(id);
-        setStudents(prev => prev.filter(student => student.id !== id));
-      } catch (err) {
-        setError('Failed to delete student. Please try again.');
-      }
+      dispatch(deleteStudent(id));
     }
   };
 
   const handleEditStudent = (student) => {
-    setEditingStudent(student);
-    setShowForm(true);
+    dispatch(setEditingStudent(student));
+    dispatch(setShowForm(true));
   };
 
   const handleCancelForm = () => {
-    setShowForm(false);
-    setEditingStudent(null);
+    dispatch(cancelForm());
   };
 
   const handleFormSubmit = (studentData) => {
@@ -100,7 +76,7 @@ function App() {
         {/* Error Message */}
         {error && (
           <div className="mb-6">
-            <ErrorMessage message={error} onRetry={loadStudents} />
+            <ErrorMessage message={error} onRetry={handleRetry} />
           </div>
         )}
 
@@ -108,7 +84,7 @@ function App() {
         {!showForm && (
           <div className="mb-6 text-center">
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => dispatch(setShowForm(true))}
               className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors flex items-center mx-auto shadow-lg"
             >
               <Plus className="w-5 h-5 mr-2" />
