@@ -56,6 +56,7 @@ const initialState = {
   error: null,
   showForm: false,
   editingStudent: null,
+  operationLoading: false,
 };
 
 const studentSlice = createSlice({
@@ -64,6 +65,9 @@ const studentSlice = createSlice({
   reducers: {
     setShowForm: (state, action) => {
       state.showForm = action.payload;
+      if (!action.payload) {
+        state.editingStudent = null;
+      }
     },
     setEditingStudent: (state, action) => {
       state.editingStudent = action.payload;
@@ -85,7 +89,7 @@ const studentSlice = createSlice({
       })
       .addCase(fetchStudents.fulfilled, (state, action) => {
         state.loading = false;
-        state.students = action.payload;
+        state.students = action.payload || [];
       })
       .addCase(fetchStudents.rejected, (state, action) => {
         state.loading = false;
@@ -93,25 +97,26 @@ const studentSlice = createSlice({
       })
       // Add student
       .addCase(addStudent.pending, (state) => {
-        state.loading = true;
+        state.operationLoading = true;
         state.error = null;
       })
       .addCase(addStudent.fulfilled, (state, action) => {
-        state.loading = false;
+        state.operationLoading = false;
         state.students.push(action.payload);
         state.showForm = false;
+        state.editingStudent = null;
       })
       .addCase(addStudent.rejected, (state, action) => {
-        state.loading = false;
+        state.operationLoading = false;
         state.error = action.payload;
       })
       // Update student
       .addCase(updateStudent.pending, (state) => {
-        state.loading = true;
+        state.operationLoading = true;
         state.error = null;
       })
       .addCase(updateStudent.fulfilled, (state, action) => {
-        state.loading = false;
+        state.operationLoading = false;
         const index = state.students.findIndex(student => student.id === action.payload.id);
         if (index !== -1) {
           state.students[index] = action.payload;
@@ -120,20 +125,20 @@ const studentSlice = createSlice({
         state.editingStudent = null;
       })
       .addCase(updateStudent.rejected, (state, action) => {
-        state.loading = false;
+        state.operationLoading = false;
         state.error = action.payload;
       })
       // Delete student
       .addCase(deleteStudent.pending, (state) => {
-        state.loading = true;
+        state.operationLoading = true;
         state.error = null;
       })
       .addCase(deleteStudent.fulfilled, (state, action) => {
-        state.loading = false;
+        state.operationLoading = false;
         state.students = state.students.filter(student => student.id !== action.payload);
       })
       .addCase(deleteStudent.rejected, (state, action) => {
-        state.loading = false;
+        state.operationLoading = false;
         state.error = action.payload;
       });
   },

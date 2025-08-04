@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Save, X } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { User, Mail, Phone, MapPin, Save, X, Loader2 } from 'lucide-react';
 
 const StudentForm = ({ student, onSubmit, onCancel, isEditing = false }) => {
+  const { operationLoading } = useSelector(state => state.students);
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,6 +21,13 @@ const StudentForm = ({ student, onSubmit, onCancel, isEditing = false }) => {
         email: student.email || '',
         phone: student.phone || '',
         address: student.address || ''
+      });
+    } else {
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        address: ''
       });
     }
   }, [student]);
@@ -49,7 +59,7 @@ const StudentForm = ({ student, onSubmit, onCancel, isEditing = false }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateForm()) {
+    if (validateForm() && !operationLoading) {
       onSubmit(formData);
     }
   };
@@ -71,99 +81,126 @@ const StudentForm = ({ student, onSubmit, onCancel, isEditing = false }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-        <User className="mr-2 text-indigo-600" />
-        {isEditing ? 'Edit Student' : 'Add New Student'}
-      </h2>
+    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-gray-100">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <User className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800">
+          {isEditing ? 'Edit Student' : 'Add New Student'}
+        </h2>
+        <p className="text-gray-500 mt-2">
+          {isEditing ? 'Update student information' : 'Fill in the details below'}
+        </p>
+      </div>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            <User className="inline w-4 h-4 mr-1" />
-            Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
-              errors.name ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Enter student name"
-          />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <User className="inline w-4 h-4 mr-2 text-blue-500" />
+              Full Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                errors.name ? 'border-red-400 bg-red-50' : 'border-gray-200 focus:border-blue-400'
+              }`}
+              placeholder="Enter student's full name"
+              disabled={operationLoading}
+            />
+            {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center">
+              <span className="w-4 h-4 mr-1">⚠</span>{errors.name}
+            </p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <Mail className="inline w-4 h-4 mr-2 text-green-500" />
+              Email Address
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                errors.email ? 'border-red-400 bg-red-50' : 'border-gray-200 focus:border-blue-400'
+              }`}
+              placeholder="student@example.com"
+              disabled={operationLoading}
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1 flex items-center">
+              <span className="w-4 h-4 mr-1">⚠</span>{errors.email}
+            </p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <Phone className="inline w-4 h-4 mr-2 text-purple-500" />
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                errors.phone ? 'border-red-400 bg-red-50' : 'border-gray-200 focus:border-blue-400'
+              }`}
+              placeholder="+1 (555) 123-4567"
+              disabled={operationLoading}
+            />
+            {errors.phone && <p className="text-red-500 text-sm mt-1 flex items-center">
+              <span className="w-4 h-4 mr-1">⚠</span>{errors.phone}
+            </p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <MapPin className="inline w-4 h-4 mr-2 text-orange-500" />
+              Address
+            </label>
+            <textarea
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              rows="3"
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 resize-none ${
+                errors.address ? 'border-red-400 bg-red-50' : 'border-gray-200 focus:border-blue-400'
+              }`}
+              placeholder="Enter complete address"
+              disabled={operationLoading}
+            />
+            {errors.address && <p className="text-red-500 text-sm mt-1 flex items-center">
+              <span className="w-4 h-4 mr-1">⚠</span>{errors.address}
+            </p>}
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            <Mail className="inline w-4 h-4 mr-1" />
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Enter email address"
-          />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            <Phone className="inline w-4 h-4 mr-1" />
-            Phone
-          </label>
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
-              errors.phone ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Enter phone number"
-          />
-          {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            <MapPin className="inline w-4 h-4 mr-1" />
-            Address
-          </label>
-          <textarea
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            rows="3"
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors resize-none ${
-              errors.address ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Enter address"
-          />
-          {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
-        </div>
-
-        <div className="flex space-x-3 pt-4">
+        <div className="flex space-x-4 pt-6">
           <button
             type="submit"
-            className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors flex items-center justify-center"
+            disabled={operationLoading}
+            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-xl hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center justify-center font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save className="w-4 h-4 mr-2" />
-            {isEditing ? 'Update' : 'Add'} Student
+            {operationLoading ? (
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-5 h-5 mr-2" />
+            )}
+            {operationLoading ? 'Processing...' : (isEditing ? 'Update Student' : 'Add Student')}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors flex items-center justify-center"
+            disabled={operationLoading}
+            className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 flex items-center justify-center font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <X className="w-4 h-4 mr-2" />
+            <X className="w-5 h-5 mr-2" />
             Cancel
           </button>
         </div>
